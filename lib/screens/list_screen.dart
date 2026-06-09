@@ -81,27 +81,32 @@ class _ListScreenState extends State<ListScreen> {
       appBar: AppBar(title: Text("Empresas", style: TextStyle(fontWeight: FontWeight.bold))),
       body: Column(
         children: [
-          ListView.builder(
-            itemBuilder: (context, index) {
-              return Card(
-                child: ListTile(
-                  title: Text("Nombre de la empresa"),
-                  subtitle: Text("RUC: ..."),
-                  trailing: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.edit, color: Colors.indigo),
-                      ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.delete, color: Colors.red),
-                      ),
-                    ],
+          if (provider.isLoading) LinearProgressIndicator(),
+          Expanded(
+            child: provider.empresas.isEmpty
+            ? Center(child: Text('No hay empresas registradas'),)
+            : ListView.builder(
+              itemBuilder: (context, index) {
+                return Card(
+                  child: ListTile(
+                    title: Text("Nombre de la empresa"),
+                    subtitle: Text("RUC: ..."),
+                    trailing: Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.edit, color: Colors.indigo),
+                        ),
+                        IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.delete, color: Colors.red),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ],
       ),
