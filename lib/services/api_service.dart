@@ -29,6 +29,19 @@ class ApiService {
     }
   }
 
+  static Future<Empresa> updateEmpresa(int id, Empresa e) async {
+    final res = await http.put(Uri.parse('$base/$id'),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode(e.toJson()),
+    );
+
+    if (res.statusCode == 200) {
+      return Empresa.fromJson(jsonDecode(res.body));
+    } else {
+      throw Exception("Error al actualizar la empresa");
+    }
+  }
+
   static Future<void> deleteEmpresa(int id) async{
     final res = await http.delete(Uri.parse('$base/$id'));
     if (res.statusCode != 200) throw Exception("Error al eliminar");
