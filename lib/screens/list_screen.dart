@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:crud_withnodejs_b/models/empresa.dart';
 import 'package:crud_withnodejs_b/providers/empresa_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -86,20 +89,25 @@ class _ListScreenState extends State<ListScreen> {
             child: provider.empresas.isEmpty
             ? Center(child: Text('No hay empresas registradas'),)
             : ListView.builder(
+              padding: EdgeInsets.all(10),
+              itemCount: provider.empresas.length,
               itemBuilder: (context, index) {
+                final Empresa e = provider.empresas[index];
                 return Card(
                   child: ListTile(
-                    title: Text("Nombre de la empresa"),
-                    subtitle: Text("RUC: ..."),
+                    title: Text(e.nombre, style: TextStyle(fontWeight: FontWeight.bold),),
+                    subtitle: Text("RUC: ${e.ruc}"),
+                    onTap: ()=> Navigator.pushNamed(context, '/detail', arguments: e),
                     trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          onPressed: () {},
+                          onPressed: ()=>Navigator.pushNamed(context, '/form', arguments: e),
                           icon: Icon(Icons.edit, color: Colors.indigo),
                         ),
                         IconButton(
-                          onPressed: () {},
                           icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: ()=> _confirmDelete(context, e.id!, e.nombre),
                         ),
                       ],
                     ),
@@ -111,7 +119,7 @@ class _ListScreenState extends State<ListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: provider.isLoading ? null: () => Navigator.pushNamed(context, '/form'),
         child: Icon(Icons.add_business_outlined),
       ),
     );

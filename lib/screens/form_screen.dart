@@ -1,47 +1,145 @@
+import 'package:crud_withnodejs_b/models/empresa.dart';
+import 'package:crud_withnodejs_b/providers/empresa_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class FormScreen extends StatelessWidget {
-   
+class FormScreen extends StatefulWidget {
   const FormScreen({super.key});
-  
+
+  @override
+  State<FormScreen> createState() => _FormScreenState();
+}
+
+class _FormScreenState extends State<FormScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nombreController = TextEditingController();
+  final _rucController = TextEditingController();
+  final _direccionController = TextEditingController();
+  final _rubroController = TextEditingController();
+  Empresa? _empresa;
+  bool _isSaving = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_empresa != null) return;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Empresa) {
+      _empresa = args;
+      _nombreController.text = _empresa!.nombre;
+      _rucController.text = _empresa!.ruc;
+      _direccionController.text = _empresa!.direccion ?? '';
+      _rubroController.text = _empresa!.rubro ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _rucController.dispose();
+    _direccionController.dispose();
+    _rubroController.dispose();
+    super.dispose();
+  }
+
+  String? _requiredValidator(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Ingrese $fieldName';
+    }
+    return null;
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSaving = true);
+
+    final provider = Provider.of<EmpresaProvider>(context, listen: false);
+    final empresa = Empresa(
+      id: _empresa?.id,
+      nombre: _nombreController.text.trim(),
+      ruc: _rucController.text.trim(),
+      direccion: _direccionController.text.trim().isEmpty
+          ? null
+          : _direccionController.text.trim(),
+      rubro: _rubroController.text.trim().isEmpty
+          ? null
+          : _rubroController.text.trim(),
+      esactivo: _empresa?.esactivo ?? true,
+    );
+
+    try {
+      if (_empresa != null && _empresa!.id != null) {
+        await provider.update(_empresa!.id!, empresa);
+      } else {
+        await provider.add(empresa);
+      }
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error guardando empresa: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final title = _empresa != null ? 'Editar Empresa' : 'Nueva Empresa';
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nueva Empresa'),
+        title: Text(title),
       ),
       body: Padding(
-        padding: EdgeInsetsGeometry.all(15),
-         child: Form(
+        padding: const EdgeInsets.all(15),
+        child: Form(
+          key: _formKey,
           child: ListView(
             children: [
               TextFormField(
-                decoration: InputDecoration(labelText: "Nombre"),
-                validator: (value) => "Ingrese su nombre",
+                controller: _nombreController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+                validator: (value) => _requiredValidator(value, 'el nombre'),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               TextFormField(
-                decoration: InputDecoration(labelText: "RUC"),
-                validator: (value) => "Ingrese su RUC",
+                controller: _rucController,
+                decoration: const InputDecoration(labelText: 'RUC'),
+                validator: (value) => _requiredValidator(value, 'el RUC'),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               TextFormField(
-                decoration: InputDecoration(labelText: "Direccion"),
-                validator: (value) => "Ingrese la direccion",
+                controller: _direccionController,
+                decoration: const InputDecoration(labelText: 'Direccion'),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               TextFormField(
-                decoration: InputDecoration(labelText: "Rubro"),
-                validator: (value) => "Ingrese su rubro",
+                controller: _rubroController,
+                decoration: const InputDecoration(labelText: 'Rubro'),
               ),
-              SizedBox(height: 25),
+              const SizedBox(height: 25),
               ElevatedButton(
-                onPressed: (){}, 
-                child: Text('Guardar')
-                )
+                onPressed: _isSaving ? null : _save,
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Guardar'),
+              ),
             ],
-          )
           ),
+        ),
       ),
     );
   }

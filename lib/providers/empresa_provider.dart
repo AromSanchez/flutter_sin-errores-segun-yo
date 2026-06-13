@@ -55,6 +55,20 @@ class EmpresaProvider  with ChangeNotifier{
     }
   }
 
+  Future<void> add(Empresa e) async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final created = await ApiService.createEmpresa(e);
+      _empresas.add(created);
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> remove(int id) async {
     _setLoading(true);
     _setError(null);
